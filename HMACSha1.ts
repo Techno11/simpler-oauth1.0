@@ -11,7 +11,7 @@
  */
 
 /*
- * Configurable variables. You may need to tweak these to be compatible with
+ * Configurable constants. You may need to tweak these to be compatible with
  * the server-side, but the defaults work in most cases.
  */
 const b64pad = ""; /* base-64 pad character. "=" for strict RFC compliance   */
@@ -22,7 +22,7 @@ const chrsz = 8;  /* bits per input character. 8 - ASCII; 16 - Unicode      */
  * They take string arguments and return either hex or base-64 encoded strings
  */
 export function b64_hmac_sha1(key: string, data: string) {
-    return binb2b64(core_hmac_sha1(key, data));
+    return bInBtoB64(core_hmac_sha1(key, data));
 }
 
 
@@ -34,25 +34,24 @@ function core_sha1(x: any[], len: number) {
     x[len >> 5] |= 0x80 << (24 - len % 32);
     x[((len + 64 >> 9) << 4) + 15] = len;
 
-    var w = Array(80);
-    var a = 1732584193;
-    var b = -271733879;
-    var c = -1732584194;
-    var d = 271733878;
-    var e = -1009589776;
+    const w = Array(80);
+    let a = 1732584193;
+    let b = -271733879;
+    let c = -1732584194;
+    let d = 271733878;
+    let e = -1009589776;
 
-    for (var i = 0; i < x.length; i += 16) {
-        var olda = a;
-        var oldb = b;
-        var oldc = c;
-        var oldd = d;
-        var olde = e;
+    for (let i = 0; i < x.length; i += 16) {
+        let oldA = a;
+        let oldB = b;
+        let oldC = c;
+        let oldD = d;
+        let oldE = e;
 
-        for (var j = 0; j < 80; j++) {
+        for (let j = 0; j < 80; j++) {
             if (j < 16) w[j] = x[i + j];
             else w[j] = rol(w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16], 1);
-            var t = safe_add(safe_add(rol(a, 5), sha1_ft(j, b, c, d)),
-                safe_add(safe_add(e, w[j]), sha1_kt(j)));
+            const t = safe_add(safe_add(rol(a, 5), sha1_ft(j, b, c, d)), safe_add(safe_add(e, w[j]), sha1_kt(j)));
             e = d;
             d = c;
             c = rol(b, 30);
@@ -60,11 +59,11 @@ function core_sha1(x: any[], len: number) {
             a = t;
         }
 
-        a = safe_add(a, olda);
-        b = safe_add(b, oldb);
-        c = safe_add(c, oldc);
-        d = safe_add(d, oldd);
-        e = safe_add(e, olde);
+        a = safe_add(a, oldA);
+        b = safe_add(b, oldB);
+        c = safe_add(c, oldC);
+        d = safe_add(d, oldD);
+        e = safe_add(e, oldE);
     }
     return Array(a, b, c, d, e);
 
@@ -93,17 +92,18 @@ function sha1_kt(t: number) {
  * Calculate the HMAC-SHA1 of a key and some data
  */
 function core_hmac_sha1(key: string, data: string) {
-    var bkey = str2binb(key);
-    if (bkey.length > 16) bkey = core_sha1(bkey, key.length * chrsz);
+    let bKey = strToBinB(key);
+    if (bKey.length > 16) bKey = core_sha1(bKey, key.length * chrsz);
 
-    var ipad = Array(16), opad = Array(16);
-    for (var i = 0; i < 16; i++) {
-        ipad[i] = bkey[i] ^ 0x36363636;
-        opad[i] = bkey[i] ^ 0x5C5C5C5C;
+    const iPad = Array(16)
+    const oPad = Array(16);
+    for (let i = 0; i < 16; i++) {
+        iPad[i] = bKey[i] ^ 0x36363636;
+        oPad[i] = bKey[i] ^ 0x5C5C5C5C;
     }
 
-    var hash = core_sha1(ipad.concat(str2binb(data)), 512 + data.length * chrsz);
-    return core_sha1(opad.concat(hash), 512 + 160);
+    const hash = core_sha1(iPad.concat(strToBinB(data)), 512 + data.length * chrsz);
+    return core_sha1(oPad.concat(hash), 512 + 160);
 }
 
 /*
@@ -111,8 +111,8 @@ function core_hmac_sha1(key: string, data: string) {
  * to work around bugs in some JS interpreters.
  */
 function safe_add(x: number, y: number) {
-    var lsw = (x & 0xFFFF) + (y & 0xFFFF);
-    var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+    const lsw = (x & 0xFFFF) + (y & 0xFFFF);
+    const msw = (x >> 16) + (y >> 16) + (lsw >> 16);
     return (msw << 16) | (lsw & 0xFFFF);
 }
 
@@ -127,10 +127,10 @@ function rol(num: number, cnt: number) {
  * Convert an 8-bit or 16-bit string to an array of big-endian words
  * In 8-bit function, characters >255 have their hi-byte silently ignored.
  */
-function str2binb(str: string) {
-    var bin = Array();
-    var mask = (1 << chrsz) - 1;
-    for (var i = 0; i < str.length * chrsz; i += chrsz)
+function strToBinB(str: string) {
+    const bin = Array();
+    const mask = (1 << chrsz) - 1;
+    for (let i = 0; i < str.length * chrsz; i += chrsz)
         bin[i >> 5] |= (str.charCodeAt(i / chrsz) & mask) << (32 - chrsz - i % 32);
     return bin;
 }
@@ -138,15 +138,15 @@ function str2binb(str: string) {
 /*
  * Convert an array of big-endian words to a base-64 string
  */
-function binb2b64(binarray: any[]) {
-    var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    var str = "";
-    for (var i = 0; i < binarray.length * 4; i += 3) {
-        var triplet = (((binarray[i >> 2] >> 8 * (3 - i % 4)) & 0xFF) << 16)
-            | (((binarray[i + 1 >> 2] >> 8 * (3 - (i + 1) % 4)) & 0xFF) << 8)
-            | ((binarray[i + 2 >> 2] >> 8 * (3 - (i + 2) % 4)) & 0xFF);
-        for (var j = 0; j < 4; j++) {
-            if (i * 8 + j * 6 > binarray.length * 32) str += b64pad;
+function bInBtoB64(binArray: any[]) {
+    const tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let str = "";
+    for (let i = 0; i < binArray.length * 4; i += 3) {
+        const triplet = (((binArray[i >> 2] >> 8 * (3 - i % 4)) & 0xFF) << 16)
+            | (((binArray[i + 1 >> 2] >> 8 * (3 - (i + 1) % 4)) & 0xFF) << 8)
+            | ((binArray[i + 2 >> 2] >> 8 * (3 - (i + 2) % 4)) & 0xFF);
+        for (let j = 0; j < 4; j++) {
+            if (i * 8 + j * 6 > binArray.length * 32) str += b64pad;
             else str += tab.charAt((triplet >> 6 * (3 - j)) & 0x3F);
         }
     }

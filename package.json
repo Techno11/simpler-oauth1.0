@@ -1,6 +1,6 @@
 {
   "name": "simpler-oauth1.0",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "description": "A back-to-basics approach to OAuth1.0",
   "main": "dist/index.js",
   "scripts": {
@@ -9,7 +9,17 @@
     "run": "node dist/index.js",
     "start": "npm run build && npm run run"
   },
-  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/techno11/simpler-oauth1.0.git"
+  },
+  "keywords": [
+    "oauth",
+    "oauth1.0",
+    "typescript",
+    "typed",
+    "oauth1"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
