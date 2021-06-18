@@ -37,7 +37,6 @@ export default class SimplerOAuth1 {
 
         // Concatenate all of our oauth options (URL parameters, oauth parameters, and any 'extra' parameters
         const signatureBase = this.calcSignatureBase();
-        console.log(signatureBase)
         // Generate a signature from all of our signed keys
         const signature = this.getSignature( signatureBase );
         // Generate an object of our OAuth Attributes
@@ -64,9 +63,12 @@ export default class SimplerOAuth1 {
      * @private
      */
     private oauthifyAttributes(): any {
+        const allowedKeys = ['callback', 'consumer_key', 'nonce', 'signature_method', 'timestamp', 'token', 'verifier', 'version'];
         const res = {} as any;
         Object.keys(this.data).forEach((key: string) => {
-            res[`oauth_${key}`] = this.data[key];
+            if (allowedKeys.includes(key)) {
+                res[`oauth_${key}`] = this.data[key];
+            }
         })
         return res;
     }
@@ -113,7 +115,7 @@ export default class SimplerOAuth1 {
     private normalizeAttributes(joinString: string, attributes: any, startChar: string, endChar: string): string {
         const components = [] as any[]
         Object.keys(attributes).forEach((key) => {
-            if(attributes[key]) components.push(key + `=${startChar}` + this.escape(attributes[key]) + endChar);
+            if(attributes[key]) components.push(key + `=${startChar}` + attributes[key] + endChar);
         })
         return components.sort().join(joinString);
     }
@@ -133,7 +135,7 @@ export default class SimplerOAuth1 {
         // Remove all search params
         url.search = '';
         // Join our strings
-        return [ this.method, url.toString(), normalized ].join('&');
+        return [ this.method, this.escape(url.toString()), this.escape(normalized) ].join('&');
     }
 
     /**
@@ -145,7 +147,6 @@ export default class SimplerOAuth1 {
         const cs = this.data.consumer_secret ?? '';
         const ts = this.data.token_secret ?? '';
         const secret = `${this.escape(cs)}&${this.escape(ts)}`
-
         return hmac.b64_hmac_sha1(secret, signatureBase);
     }
 }
