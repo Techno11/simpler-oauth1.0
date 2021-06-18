@@ -11,7 +11,7 @@ const hmac = require('./HMACSha1')
  * Adapted from OAuthSimple: http://unitedHeroes.net/OAuthSimple
  */
 
-class SimplerOAuth1 {
+export default class SimplerOAuth1 {
     private data: { [key: string]: any };
     private url: string;
     private method: string;

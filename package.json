@@ -1,6 +1,6 @@
 {
   "name": "simpler-oauth1.0",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A back-to-basics approach to OAuth1.0",
   "main": "dist/index.js",
   "scripts": {
